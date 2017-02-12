@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>회의</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+	<link rel="stylesheet"
+	href="css/theme.css">
+</head>
+<body>
+
+<header>
+	<p class="page-title">C-CUBE SUBJECT : Demo</p>
+</header>
+<div class="wrap">
+<div class="column left-column">
+	<div class="column video-area">
+		<div id="my-video-area" class="video-container">
+			<div class="title">Me</div>
+			<div class="videos">
+			</div>
+		</div>
+		
+		<div id="other-video-area" class="video-container">
+			<div class="title">Users Online</div>
+			<div class="videos">
+			</div>
+		</div>
+	</div>
+	<div class="column wrap-btn-toggle-video">
+		<button id="btn-toggle-video"></button>
+	</div>
+</div>
+<div class="column center-column">
+	<video id="work-video">
+	</video>
+</div>
+<div class="column right-column">
+	<div class="wrap-btn-chat-toggle">
+		<button id="btn-chat-toggle"></button>
+	</div>
+	<div class="wrap-area-chat">
+		<div id="area-chat-title">Group Chat</div>
+		<div id="area-chat-history">
+		</div>
+		<textarea id="chat-content"></textarea>
+	</div>
+</div>
+</div>
+<div>
+	Conversation id:<input id="convId" type="text"/>
+	<button onclick="createConversation()">Create</button>
+	<button onclick="joinConversation()">Join</button>
+	<button onclick="leaveConversation()">Leave</button>
+	<button onclick="leaveConversation()">Remove</button>
+</div>
+<div>
+	<ul id="log">
+
+	</ul>
+</div>
+
+<div id="template-local" class="template component-area component-local">
+	<video class="video-component" width="160" height="120" autoplay></video>
+	<div class="toolkit-component">
+		<button class="btn-maximize btn-toggle"></button>
+		<button class="btn-visible btn-toggle"></button>
+		<button class="btn-sound btn-toggle"></button>
+		<button class="btn-pencil btn-toggle btn-toggle-off"></button>
+		<button class="btn-megahorn btn-toggle btn-toggle-off"></button>
+	</div>
+</div>
+
+<div id="template-remote" class="template component-area component-remote">
+	<p class="name-component"></p>
+	<video class="video-component" width="100" height="75" autoplay></video>
+	<div class="toolkit-component">
+		<button class="btn-maximize btn-toggle"></button>
+		<button class="btn-visible btn-toggle"></button>
+		<button class="btn-sound btn-toggle"></button>
+		<button class="btn-pencil btn-toggle btn-toggle-off"></button>
+		<button class="btn-megahorn btn-toggle btn-toggle-off"></button>
+	</div>
+</div>
+<script src="js/adapter.js"></script>
+	<script src="js/hermesRTC.js"></script>
+	<script src="js/jquery-2.1.3.min.js"></script>
+	<script
+		src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready()
+		{
+			$("#btn-toggle-video").click(function(){
+				$(".video-area").toggle();
+			})
+			
+			$("#btn-chat-toggle").click(function(){
+				$(".wrap-area-chat").toggle();
+				if($(".wrap-btn-chat-toggle").css("left") == "250px")
+					$(".wrap-btn-chat-toggle").css({left: "0px"});
+				else
+					$(".wrap-btn-chat-toggle").css({left: "250px"});
+			})
+			
+			$("#chat-content").keydown(function(key){
+				if(key.keyCode == 13)
+				{
+					var convId = $('#convId').val();
+					hermesRTC.text(convId, {message : $("#chat-content").val()});
+					$("#area-chat-history").append("<div>" + "나 :" + $("#chat-content").val() + "</div>");
+					$("#chat-content").val("");
+					console.log("sendmsg");	
+				}
+			});
+		}
+		var createConversation = function(){
+			var convId = $('#convId').val();
+			hermesRTC.create(convId); // enter app key
+		};
+		var createBroadcastConversation = function(){
+			var convId = $('#convId').val();
+			hermesRTC.create(convId, {type : 'BROADCAST'});
+		};
+
+		var joinConversation = function(){
+			var convId = $('#convId').val();
+			hermesRTC.join(convId); // enter room key
+		};
+		var removeConversation = function(){
+			var convId = $('#convId').val();
+			hermesRTC.remove(convId); // enter room key
+		};
+		var leaveConversation = function(){
+			hermesRTC.leave();
+		};
+
+		var hermesRTC = new HermesRTC("1mv7nhgsh82b5fimhjralek2t");
+		hermesRTC.on('create', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			var local = $("#local").prop({id: event.to});
+			local.find(".toolkit-component .btn-pencil").removeClass("btn-toggle-off");
+			local.find(".toolkit-component .btn-megahorn").removeClass("btn-toggle-off");
+			$('#log').append('<li>Room with id ' + event.content + ' has been created, share it with your friend to start videochat</li>');
+		});
+
+		hermesRTC.on(HermesRTC.JOIN, function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$("#local").prop({id: event.to});
+			$('#log').append('<li>You have been joined to conversation ' + event.content + '</li>');
+		});
+
+		hermesRTC.on(HermesRTC.ERROR, function(hermesRTC, event) {
+			
+			switch(event.content){
+				case HermesRTC.APPKEY_NOT_FOUND:
+					console.log("APPKEY_NOT_FOUND");
+					break;
+			}
+			
+		});
+		
+		hermesRTC.on(HermesRTC.CUSTOM_SIGNAL, function(hermesRTC, event) {
+			console.log("custom_signal arrived")
+			console.log(event)
+			
+		});
+		
+		hermesRTC.on(HermesRTC.NEW_JOIN, function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$('#log').append('<li>Member with id ' + event.from + ' has joined conversation</li>');
+		});
+
+		hermesRTC.on(HermesRTC.LOCAL_STREAM, function(member, stream) {
+			var dest = $("#template-local").clone().prop({ id: 'local'});
+			dest.find(".video-component").prop({srcObject:stream.stream});
+			dest.find(".video-component").click(function(){
+				dest.find(".toolkit-component").toggle();
+			});
+			dest.find(".toolkit-component .btn-maximize").click(function(){
+				var video = dest.find(".video-component")[0];
+				console.log(video.webkitRequestFullScreen);
+			        if (video.requestFullscreen) {
+			            video.requestFullscreen();
+			        }
+			        else if (video.mozRequestFullScreen) {
+			            video.mozRequestFullScreen();
+			        }
+			        else if (video.webkitRequestFullScreen) {
+			            video.webkitRequestFullScreen();
+			        }
+				
+			});
+			dest.find(".toolkit-component .btn-visible").click(function(){
+				var convId = $('#convId').val();
+				if($(this).hasClass("btn-toggle-off")){$(this).removeClass("btn-toggle-off")}
+				else{$(this).addClass("btn-toggle-off")}
+				hermesRTC.localStream.getVideoTracks()[0].enabled = !(hermesRTC.localStream.getVideoTracks()[0].enabled)
+			})
+			dest.find(".toolkit-component .btn-sound").click(function(){
+				var convId = $('#convId').val();
+				if($(this).hasClass("btn-toggle-off")){$(this).removeClass("btn-toggle-off")}
+				else{$(this).addClass("btn-toggle-off")}
+				hermesRTC.localStream.getAudioTracks()[0].enabled = !(hermesRTC.localStream.getAudioTracks()[0].enabled)
+			})
+			
+			console.log(stream)
+			$("#my-video-area .videos").append(dest);
+		});
+
+		hermesRTC.on(HermesRTC.REMOTE_STREAM, function(member, stream) {
+			var dest = $("#template-remote").clone().prop({ id: stream.member});
+			dest.find(".video-component").prop({srcObject:stream.stream});
+			dest.find(".name-component").text(stream.member);
+			dest.find(".video-component").click(function(){
+				dest.find(".toolkit-component").toggle();
+			});
+			dest.find(".toolkit-component .btn-maximize").click(function(){
+				var video = dest.find(".video-component")[0];
+				console.log(video.webkitRequestFullScreen);
+			        if (video.requestFullscreen) {
+			            video.requestFullscreen();
+			        }
+			        else if (video.mozRequestFullScreen) {
+			            video.mozRequestFullScreen();
+			        }
+			        else if (video.webkitRequestFullScreen) {
+			            video.webkitRequestFullScreen();
+			        }				
+			        
+			});
+			
+			dest.find(".toolkit-component .btn-visible").click(function(){
+				var convId = $('#convId').val();
+				if($(this).hasClass("btn-toggle-off")){$(this).removeClass("btn-toggle-off")}
+				else{$(this).addClass("btn-toggle-off")}
+				dest.find(".video-component").prop("srcObject").getVideoTracks()[0].enabled = !(dest.find(".video-component").prop("srcObject").getVideoTracks()[0].enabled)
+			})
+			dest.find(".toolkit-component .btn-sound").click(function(){
+				var convId = $('#convId').val();
+				if($(this).hasClass("btn-toggle-off")){$(this).removeClass("btn-toggle-off")}
+				else{$(this).addClass("btn-toggle-off")}
+				dest.find(".video-component").prop("srcObject").getAudioTracks()[0].enabled = !(dest.find(".video-component").prop("srcObject").getAudioTracks()[0].enabled)
+			})
+			dest.find(".toolkit-component .btn-pencil").click(function(){
+				var convId = $('#convId').val();
+				if(dest.find(".toolkit-component .btn-pencil").hasClass("btn-toggle-off")){
+					hermesRTC.enmodify(convId, stream.member);
+					dest.find(".toolkit-component .btn-pencil").removeClass("btn-toggle-off")
+				}
+				else
+				{
+					hermesRTC.demodify(convId, stream.member);
+					dest.find(".toolkit-component .btn-pencil").addClass("btn-toggle-off")
+				}
+				
+			})
+			dest.find(".toolkit-component .btn-megahorn").click(function(){
+				var convId = $('#convId').val();
+				hermesRTC.delegate(convId, stream.member);
+			})
+			console.log(stream)
+			$("#other-video-area .videos").append(dest);
+		});
+
+		hermesRTC.on(HermesRTC.LEFT, function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$('#' + event.from).remove();
+			$('#log').append('<li>' + event.from + " left!</li>");
+		});
+		
+		hermesRTC.on('delegated', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$('#log').append('<li>' + event.to + " delegated!</li>");
+		});
+		
+		hermesRTC.on('envideo', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$('#log').append('<li>' + event.to + " envideoed!</li>");
+		});
+		
+		hermesRTC.on('devideo', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			$('#log').append('<li>' + event.to + " devideoed!</li>");
+		});
+		
+		hermesRTC.on('enmodified', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			console.log("#" + event.content)
+			var dest = $("#" + event.content);
+			dest.find(".toolkit-component .btn-pencil").removeClass("btn-toggle-off");
+			$('#log').append('<li>' + event.to + " enmodified!</li>");
+		});
+		
+		hermesRTC.on('demodified', function(hermesRTC, event) {
+			console.log(JSON.stringify(event));
+			console.log("#" + event.content)
+			var dest = $("#" + event.content);
+			dest.find(".toolkit-component .btn-pencil").addClass("btn-toggle-off");
+			$('#log').append('<li>' + event.to + " demodified!</li>");
+		});
+		
+		hermesRTC.on('text', function(hermesRTC, event) {
+			console.log(event);
+			$("#area-chat-history").append("<div>" + event.from + ":" + event.custom.message + "</div>");
+		});
+	</script>
+</body>
+</html>

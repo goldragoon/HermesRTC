@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+#include("layout.vm")
+
+<script>
+
+$(document).ready(function(){
+	readKey()
+})
+
+function readKey()
+{
+	System.execute(
+			System.KEY, 
+			System.READ,
+			{},
+			function (data) {
+				for (d in data) {
+					var key = data[d]
+					console.log(key)
+					var row = $(".row-template").clone().attr("class", "row")
+					row.attr("id", key.appKey_id)
+					row.find(".name a").text(key.name)
+					row.find(".name a").prop("href", "/signal/read/" + key.value)
+					row.find(".value").text(key.value)
+					row.find(".btn-delete").attr("onclick", "deleteKey('" + key.appKey_id + "')")
+					$('#table > tbody:last').append(row)
+					row.fadeIn()
+				}
+				//console.log(data)
+				
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+function deleteKey(appKey_id)
+{
+	System.execute(
+			System.KEY, 
+			System.DELETE,
+			{"url_param" : appKey_id},
+			function (data) {
+				var row = $("#" + appKey_id).fadeOut()
+				console.log(data)
+				
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+
+function createKey()
+{
+	event.preventDefault();
+	System.execute(
+			System.KEY, 
+			System.CREATE,
+			System.serializeArrayToDic($("#form-createKey").serializeArray()),
+			function (data) {
+					console.log(data)
+					var row = $(".row-template").clone().attr("class", "row")
+					row.attr("id", data.appKey_id)
+					row.find(".name a").text(data.name)
+					row.find(".name a").prop("href", "/signal/read/" + data.value)
+					row.find(".value").text(data.value)
+					row.find(".btn-delete").attr("onclick", "deleteKey('" + data.appKey_id + "')")
+					$('#table > tbody:last').append(row)
+					row.fadeIn()
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+</script>
+<meta charset="UTF-8">
+<title>개발키 패널</title>
+</head>
+<body>
+	<div class="form">
+		<div class="form-panel one">
+		<div class="form-header">
+      		<h1>Create Key</h1>
+    	</div>
+		<form id="form-createKey">
+			<div class="form-group">
+	          <label for="name">KEY NAME</label>
+	          <input type="text" id="keyname" name="name" required="required"/>
+	        </div>
+	        <div class="form-group">
+          		<button type="submit" onclick='createKey()'>CREATE</button>
+        	</div>
+        </form>
+        
+       	<div class="form-header" style="margin-top:50px; margin-bottom: 10px;">
+      		<h1>Key List</h1>
+    	</div>
+    	
+		<table id="table" class="table">
+		      <thead>
+		        <tr>
+		          <th>Name</th>
+		          <th>Value</th>
+		          <th>Manage</th>
+		        </tr>
+		      </thead>
+		      <tbody>
+		        <tr class="row-template" style="display:none;">
+		          <td class="name"><a href=""></a></td>
+		          <td class="value"></td>
+		          <td class="manage">
+		          	<button class="btn-delete btn-small">delete</button>
+		          </td>
+		        </tr>
+		        
+		      </tbody>
+		    </table>
+		</div>
+	</div>
+</body>
+</html>

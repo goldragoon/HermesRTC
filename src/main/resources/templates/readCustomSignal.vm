@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+#include("layout.vm")
+
+<script>
+
+$(document).ready(function(){
+	$("#appKey").val(document.URL.split("/").pop())
+	readSignal()
+})
+
+function readSignal()
+{
+	System.execute(
+			System.SIGNAL, 
+			System.READ,
+			{"url_param":document.URL.split("/").pop()},
+			function (data) {
+				for (d in data) {
+					var signal = data[d]
+					console.log(d)
+					var row = $(".row-template").clone().attr("class", "row")
+					row.attr("id", signal.customSignal_id)
+					row.find(".name").text(signal.name)
+					row.find(".value").text(signal.value)
+					row.find(".btn-delete").attr("onclick", "deleteSignal('" + signal.customSignal_id + "')")
+					$('#table > tbody:last').append(row)
+					row.fadeIn()
+				}
+				//console.log(data)
+				
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+function deleteSignal(signal_id)
+{
+	System.execute(
+			System.SIGNAL, 
+			System.DELETE,
+			{"url_param" : signal_id},
+			function (data) {
+				var row = $("#" + signal_id).fadeOut()
+				console.log(data)
+				
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+
+function createSignal()
+{
+	event.preventDefault();
+	System.execute(
+			System.SIGNAL, 
+			System.CREATE,
+			System.serializeArrayToDic($("#form-createSignal").serializeArray()),
+			function (data) {
+					console.log(data)
+					var row = $(".row-template").clone().attr("class", "row")
+					row.attr("id", data.customSignal_id)
+					row.find(".name").text(data.name)
+					row.find(".value").text(data.value)
+					row.find(".btn-delete").attr("onclick", "deleteSignal('" + data.customSignal_id + "')")
+					$('#table > tbody:last').append(row)
+					row.fadeIn()
+			},
+	        function(request, status, error) {
+		          console.log(error)
+		    }
+	)
+}
+</script>
+<meta charset="UTF-8">
+<title>시그널 패널</title>
+</head>
+<body>
+	<div class="form">
+		
+		<div class="form-panel one">
+		<div class="form-header" style="margin-bottom: 10px;">
+      		<h1>Create Signal</h1>
+    	</div>
+		<form id="form-createSignal">
+			<input type="hidden" id="appKey" name="appKey"/>
+			<div class="form-group" >
+	        	<label for="name">SIGNAL NAME</label>
+	        	<input type="text" id="signal-name" name="name" required="required"/>		
+	        </div>
+	        <div class="form-group">
+	        	<label for="name">SIGNAL VALUE</label>
+	        	<input type="text" id="signal-value" name="value" required="required"/>
+	        </div>
+	        <div class="form-group">
+          		<button type="submit" onclick='createSignal()'>CREATE</button>
+        	</div>
+        </form>
+        
+       	<div class="form-header" style="margin-top:50px; margin-bottom: 10px;">
+      		<h1>Signal List</h1>
+    	</div>
+    	
+		<table id="table" class="table">
+		      <thead>
+		        <tr>
+		          <th>Name</th>
+		          <th>Value</th>
+		          <th>Manage</th>
+		        </tr>
+		      </thead>
+		      <tbody>
+		        <tr class="row-template" style="display:none;">
+		          <td class="name"></td>
+		          <td class="value"></td>
+		          <td class="manage">
+		          	<button class="btn-delete btn-small">delete</button>
+		          </td>
+		        </tr>
+		        
+		      </tbody>
+		    </table>
+		</div>
+	</div>
+</body>
+</html>
