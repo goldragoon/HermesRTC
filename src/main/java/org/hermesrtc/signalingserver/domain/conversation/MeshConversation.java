@@ -67,17 +67,14 @@ public class MeshConversation extends Conversation {
 
     private void informRestAndBeginSignalExchange(Member sender) {
         for (Member to : members) {
+        	log.info("Signal exchanged to " + to.getId());
             sendJoinedFrom(sender, to);
             exchange.begin(to, sender, (m1, m2) -> true);
         }
     }
 
     private void informSenderThatHasBeenJoined(Member sender) {
-        if (isWithoutMember()) {
-            sendJoinedToFirst(sender, id);
-        } else {
-            sendJoinedToConversation(sender, id);
-        }
+    	sendJoinedToConversation(sender, id);
     }
 
     public synchronized boolean isWithoutMember() {
@@ -115,16 +112,16 @@ public class MeshConversation extends Conversation {
         }
         return remove;
     }
-
+/*
     private void sendJoinedToFirst(Member sender, String id) {
         InternalMessage.create()//
-                .to(sender)//
-                .signal(Signal.CREATE)//
-                .content(id)//
-                .build()//
-                .send();
+        .to(sender)//
+        .content(id)//
+        .signal(Signal.JOIN)//
+        .build()//
+        .send();
     }
-    
+  */  
 	@Override
 	public void grantModification(Member sender, Member receiver) {
 		 

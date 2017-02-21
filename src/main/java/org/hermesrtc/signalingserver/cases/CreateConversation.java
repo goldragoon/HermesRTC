@@ -2,6 +2,7 @@ package org.hermesrtc.signalingserver.cases;
 
 import org.hermesrtc.signalingserver.domain.Conversation;
 import org.hermesrtc.signalingserver.domain.InternalMessage;
+import org.hermesrtc.signalingserver.domain.Signal;
 import org.hermesrtc.signalingserver.domain.Signals;
 import org.hermesrtc.signalingserver.repository.Conversations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,14 @@ public class CreateConversation implements SignalHandler {
 
     public void execute(InternalMessage context) {
         Conversation conversation = conversations.create(context);
-        conversation.join(context.getFrom());
-        conversation.setMaster(context.getFrom());
+        InternalMessage.create()//
+        .to(context.getFrom())//
+        .signal(Signal.CREATE)//
+        .content(conversation.getId())
+        .build()//
+        .send();
+        //conversation.join(context.getFrom());
+        //conversation.setMaster(context.getFrom());
     }
 
 }

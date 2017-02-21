@@ -81,8 +81,6 @@ public class ConnectionContext {
                 .from(master)//
                 .to(slave)//
                 .signal(Signal.ANSWER_REQUEST)//
-                .addCustom("modify", master.getConversation().get().isMemberModifiable(master) + "")
-                .addCustom("delegated", master.getConversation().get().getMaster().equals(master) + "")
                 .build()//
                 .send();
         bus.post(HermesRTCEvents.MEDIA_LOCAL_STREAM_REQUESTED.occurFor(slave.getSession()));

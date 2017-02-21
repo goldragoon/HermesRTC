@@ -45,7 +45,7 @@ public abstract class Conversation implements HermesRTCConversation {
     public void left(Member sender) {
         if (remove(sender)) {
             if (isWithoutMember()) {
-                unregisterConversation(sender, this);
+                //unregisterConversation(sender, this);
             }
         }
     }
